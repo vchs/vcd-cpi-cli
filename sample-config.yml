@@ -1,7 +1,7 @@
 ---
 api: https://p3v5-vcd.vchs-int.vmware.com
-username: nlai@vmware.com
-password: 333Songhulu@
+username: username
+password: ******
 entities:
     organization: VDC-26852-120815-121
     virtual_datacenter: VDC-26852-120815-121
