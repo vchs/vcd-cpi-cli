@@ -1,0 +1,18 @@
+---
+api: https://p3v5-vcd.vchs-int.vmware.com
+username: nlai@vmware.com
+password: 333Songhulu@
+entities:
+    organization: VDC-26852-120815-121
+    virtual_datacenter: VDC-26852-120815-121
+    vapp_catalog: 
+    media_catalog:
+control:
+    retries:
+        default: 1
+        upload_vapp_files: 1
+    time_limit_sec:
+        http_request: 60
+    rest_throttle:
+        min: 0
+        max: 2

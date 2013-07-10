@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+['SDK_PATH', 'CPI_PATH'].each do |var|
+  $LOAD_PATH.unshift File.absolute_path(File.join(ENV[var], 'lib')) if ENV[var]
+end
+
+require 'thor'
+require_relative '../lib/utils'
+require_relative '../lib/cli-api'
+
+module VCloud
+  class App < Thor
+    desc 'api COMMAND ...', 'Use SDK commands'
+    subcommand 'api', VCloud::ApiCli
+  end
+end
+
+VCloud::App.start ARGV
