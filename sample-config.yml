@@ -1,12 +1,12 @@
 ---
-api: https://p3v5-vcd.vchs-int.vmware.com
+api: https://vcd.vchs.vmware.com
 username: username
 password: ******
 entities:
-    organization: VDC-26852-120815-121
-    virtual_datacenter: VDC-26852-120815-121
-    vapp_catalog: 
-    media_catalog:
+    organization: VDC-name
+    virtual_datacenter: VDC-name
+    vapp_catalog: vapp-cat-name
+    media_catalog: media-cat-name
 control:
     retries:
         default: 1
