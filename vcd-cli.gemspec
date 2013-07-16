@@ -13,5 +13,6 @@ lib/utils.rb
   s.require_paths << 'lib'
   s.bindir = 'bin'
   s.executables << 'vcd-cli'
-  s.add_runtime_dependency('thor','0.18.1')
+  s.add_runtime_dependency 'thor','0.18.1'
+  s.add_dependency 'yajl-ruby', '>=0.8.2'  
 end

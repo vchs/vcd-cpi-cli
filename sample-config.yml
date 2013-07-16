@@ -1,6 +1,6 @@
 ---
-api: https://vcd.vchs.vmware.com
-username: username
+url: https://vcd.vchs.vmware.com
+user: username
 password: ******
 entities:
     organization: VDC-name

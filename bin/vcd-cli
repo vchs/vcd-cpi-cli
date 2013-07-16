@@ -4,14 +4,36 @@
   $LOAD_PATH.unshift File.absolute_path(File.join(ENV[var], 'lib')) if ENV[var]
 end
 
+if ENV['BOSH_PATH']
+  $LOAD_PATH.unshift File.absolute_path(File.join(ENV['BOSH_PATH'], 'bosh_common', 'lib'))
+  $LOAD_PATH.unshift File.absolute_path(File.join(ENV['BOSH_PATH'], 'bosh_cpi', 'lib'))
+  require 'cloud' # load Bosh::Clouds
+end
+
 require 'thor'
 require_relative '../lib/utils'
 require_relative '../lib/cli-api'
+require_relative '../lib/cli-cpi'
 
 module VCloud
   class App < Thor
+    include Utils
+    
+    desc 'target CONFIGFILE', 'Select vCloud Director'
+    def target (config_file)
+      setup_config config_file
+    end
+    
+    desc 'info', 'Show target info'
+    def info
+      dump_config
+    end
+
     desc 'api COMMAND ...', 'Use SDK commands'
     subcommand 'api', VCloud::ApiCli
+    
+    desc 'cpi COMMAND ...', 'Use CPI commands'
+    subcommand 'cpi', VCloud::CpiCli
   end
 end
 
