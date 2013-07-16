@@ -12,7 +12,11 @@ control:
         default: 1
         upload_vapp_files: 1
     time_limit_sec:
+        default: 300
         http_request: 60
+        process_descriptor_vapp_template: 300
     rest_throttle:
         min: 0
         max: 2
+    delay: 10
+    backoff: 1
