@@ -18,7 +18,8 @@ It depends on how you want to use:
    Set two envionrment variables:
    
    - SDK_PATH: pointing to `ruby_vcloud_sdk` folder;
-   - CPI_PATH: pointing to `bosh_vcloud_cpi` folder.
+   - CPI_PATH: pointing to `bosh_vcloud_cpi` folder;
+   - BOSH_PATH: pointing to bosh source tree, required by cpi.
    
    Then do `bundle install` once, from now on, keep the above environment variables, you can do `bin/vcd-cli ...`
 
