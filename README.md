@@ -27,3 +27,35 @@ Commands
 --------
 
 Refer to internal design doc. Will be updated here later.
+
+Example
+-------
+
+Here's a simple example:
+
+1. Clone source code
+```bash
+git clone https://github.com/vchs/bosh -b vcloud_cpi_changes
+git clone https://github.com/vchs/vcd-cpi-cli
+```
+
+2. Setup environment variables and do bundle install
+```bash
+export BOSH_PATH=`pwd`/bosh
+export SDK_PATH=$BOSH_PATH/ruby_vcloud_sdk
+export CPI_PATH=$BOSH_PATH/bosh_vcloud_cpi
+cd vcd-cpi-cli
+bundle install
+```
+
+3. Create a configuration file
+```bash
+cp sample-config.yml _my_config.yml
+# update _my_config.yml with your vCloud settings
+bin/vcd-cli target ./_my_config.yml
+```
+
+4. Start working with cli
+```bash
+bin/vcd-cli cpi create-stemcell ~/Downloads/vsphere-stemcell-0.8.1.tar.gz
+```
