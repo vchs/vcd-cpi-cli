@@ -32,6 +32,10 @@ module VCloud
       puts YAML.dump(cfg)
     end
 
+    def setup_logger(options)
+      Logger.new(options[:logger] || 'vcd-cli.log')
+    end
+    
     def fatal (msg)
       $stderr.puts msg
       exit 1

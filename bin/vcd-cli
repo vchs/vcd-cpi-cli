@@ -19,6 +19,8 @@ module VCloud
   class App < Thor
     include Utils
     
+    class_option :logger, :type => :string, :aliases => :l
+    
     desc 'target CONFIGFILE', 'Select vCloud Director'
     def target (config_file)
       setup_config config_file

@@ -6,14 +6,30 @@ module VCloud
   class ApiCli < Thor
     include Utils
     
-    class_option :logger, :type => :string, :aliases => :l
-
     desc 'vdc', 'Display Virtual Data Center'
     def vdc
       ovdc = client.get_ovdc
       puts ovdc.inspect
     end
     
+    desc 'disks', 'Display disks'
+    def disks
+      ovdc = client.get_ovdc
+      puts ovdc.disks.inspect
+    end
+
+    desc 'networks', 'Display available networks'
+    def networks
+      ovdc = client.get_ovdc
+      puts ovdc.available_networks.inspect
+    end
+    
+    desc 'storage-profiles', 'Display storage profiles'
+    def storage_profiles
+      ovdc = client.get_ovdc
+      puts ovdc.storage_profiles.inspect
+    end
+  
     desc 'catalog CATALOGNAME', 'Display Catalog'
     def catalog (name)
       cat = client.get_catalog name
@@ -64,7 +80,8 @@ module VCloud
     option :description, :aliases => :d
     option :'disk-locality', :aliases => :k
     def instantiate (template_id, vapp_name)
-      client.instantiate_vapp_template template_id, vapp_name
+      result = client.instantiate_vapp_template template_id, vapp_name
+      puts result.inspect
     end
     
     desc 'delete-network', 'Delete network'
@@ -131,7 +148,7 @@ module VCloud
     def client
       unless @client
         cfg = config
-        @logger = Logger.new(options[:logger] || 'vcd-cli.log')
+        @logger = setup_logger options
         VCloudSdk::Config.configure({ 'logger' => @logger })
         @client = VCloudSdk::Client.new cfg['url'], cfg['user'], cfg['password'], cfg['entities'], cfg['control']
       end
