@@ -30,31 +30,36 @@ module VCloud
       puts result.inspect
     end
     
-    desc 'delete-stemcell VAPPID', 'Delete specified vApp template'
-    def delete_stemcell (vapp_id)
-      cpi.delete_stemcell vapp_id
+    desc 'delete-stemcell TEMPLATEID', 'Delete specified vApp template'
+    def delete_stemcell (id)
+      cpi.delete_stemcell id
     end
     
-    desc 'create-vm AGENTID VAPPID', 'Create a virtual machine inside the vApp'
+    desc 'create-vm AGENTID TEMPLATEID', 'Create a virtual machine inside the vApp'
     option :cpu, :default => 1, :type => :numeric, :desc => 'CPU number'
     option :mem, :required => true, :type => :numeric, :desc => 'Memory size in MB'
     option :disk, :required => true, :type => :numeric, :desc => 'Disk size in MB'
     option :env, :type => :hash, :default => {}, :desc => 'Environments'
-    option :networks, :type => :array, :default => [], :desc => 'Networks'
+    option :networks, :type => :string, :desc => 'Network configuration file'
     option :'disk-locality', :desc => 'Disk locality'
     def create_vm (agent_id, vapp_id)
-      result = cpi.create_vm agent_id, vapp_id, { 'cpu' => options[:cpu], 'mem' => options[:mem], 'disk' => options[:disk] }, options[:networks], options[:'disk-locality'], options[:env]
+      networks = if options[:networks]
+        YAML.load_file options[:networks]
+      else
+        {}
+      end
+      result = cpi.create_vm agent_id, vapp_id, { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, networks, options[:'disk-locality'], options[:env]
       puts result.inspect
     end
     
-    desc 'delete-vm VAPPID', 'Delete a virtual machine'
-    def delete_vm (vapp_id)
-      cpi.delete_vm vapp_id
+    desc 'delete-vm VMID', 'Delete a virtual machine'
+    def delete_vm (id)
+      cpi.delete_vm id
     end
     
-    desc 'reboot-vm VAPPID', 'Reboot a vApp'
-    def reboot_vm (vapp_id)
-      cpi.reboot_vm vapp_id
+    desc 'reboot-vm VMID', 'Reboot a vApp'
+    def reboot_vm (id)
+      cpi.reboot_vm id
     end
     
     desc 'configure-networks VAPPID NETWORK...', 'Configure networks'
@@ -86,7 +91,7 @@ module VCloud
   
     desc 'get-disk-size DISKID', 'Get disk size'
     def get_disk_size (disk_id)
-      puts cpi.get_disk_size(disk_id).inspect
+      puts cpi.get_disk_size_mb(disk_id).inspect
     end
     
     private
@@ -96,7 +101,7 @@ module VCloud
         cfg = config
         @logger = setup_logger options
         Bosh::Clouds::Config.configure StubConfig.new(@logger)
-        @cpi = Bosh::Clouds::VCloud.new(cfg)
+        @cpi = Bosh::Clouds::VCloud.new({ "vcds" => [cfg], "agent" => {} })
       end
       @cpi
     end

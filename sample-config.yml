@@ -7,6 +7,7 @@ entities:
     virtual_datacenter: VDC-name
     vapp_catalog: vapp-cat-name
     media_catalog: media-cat-name
+    vm_metadata_key: agent-env
 control:
     retries:
         default: 5
@@ -28,33 +29,3 @@ control:
         max: 1
     delay: 1
     backoff: 2
-vcds:
-    - url: https://vcd.vchs.vmware.com
-      user: username
-      password: ******
-      entities:
-        organization: org-name
-        virtual_datacenter: VDC-name
-        vapp_catalog: vapp-cat-name
-        media_catalog: media-cat-name
-      control:
-        retries:
-            default: 5
-            upload_vapp_files: 7
-            cpi: 3
-        time_limit_sec:
-            default: 1200
-            http_request: 240
-            delete_vapp_template: 1200
-            delete_vapp: 1200
-            delete_media: 1200
-            instantiate_vapp_template: 3000
-            power_on: 6000
-            power_off: 6000
-            undeploy: 7200
-            process_descriptor_vapp_template: 3000
-        rest_throttle:
-            min: 0
-            max: 1
-        delay: 1
-        backoff: 2
