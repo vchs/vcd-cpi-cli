@@ -66,6 +66,12 @@ module VCloud
       cpi.reboot_vm id
     end
     
+    desc 'has-vm VMID', 'Check valiadity of VMID'
+    def has_vm (id)
+      result = cpi.has_vm? id
+      puts result.inspect
+    end
+
     desc 'configure-networks VAPPID NETWORK...', 'Configure networks'
     def configure_networks (vapp_id, *networks)
       cpi.configure_networks vapp_id, networks
