@@ -12,8 +12,8 @@ end
 
 require 'thor'
 require_relative '../lib/utils'
-require_relative '../lib/cli-api'
-require_relative '../lib/cli-cpi'
+require_relative '../lib/cli-api' if ENV['SDK_PATH']
+require_relative '../lib/cli-cpi' if ENV['CPI_PATH']
 
 module VCloud
   class App < Thor
@@ -31,11 +31,15 @@ module VCloud
       dump_config
     end
 
-    desc 'api COMMAND ...', 'Use SDK commands'
-    subcommand 'api', VCloud::ApiCli
+    if ENV['SDK_PATH']
+      desc 'api COMMAND ...', 'Use SDK commands'
+      subcommand 'api', VCloud::ApiCli
+    end
     
-    desc 'cpi COMMAND ...', 'Use CPI commands'
-    subcommand 'cpi', VCloud::CpiCli
+    if ENV['CPI_PATH']
+      desc 'cpi COMMAND ...', 'Use CPI commands'
+      subcommand 'cpi', VCloud::CpiCli
+    end
   end
 end
 

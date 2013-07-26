@@ -40,15 +40,19 @@ module VCloud
     option :mem, :required => true, :type => :numeric, :desc => 'Memory size in MB'
     option :disk, :required => true, :type => :numeric, :desc => 'Disk size in MB'
     option :env, :type => :hash, :default => {}, :desc => 'Environments'
-    option :networks, :type => :string, :desc => 'Network configuration file'
+    option :networks, :type => :hash, :default => {}, :desc => 'Networks name:ip name:ip ...'
     option :'disk-locality', :desc => 'Disk locality'
     def create_vm (agent_id, vapp_id)
-      networks = if options[:networks]
-        YAML.load_file options[:networks]
-      else
-        {}
+      bosh_nets = {}
+      options[:networks].each do |name, ip|
+        bosh_nets[name] = {
+          'ip' => ip,
+          'cloud_properties' => {
+            'name' => name
+          }
+        }
       end
-      result = cpi.create_vm agent_id, vapp_id, { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, networks, options[:'disk-locality'], options[:env]
+      result = cpi.create_vm agent_id, vapp_id, { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, bosh_nets, options[:'disk-locality'], options[:env]
       puts result.inspect
     end
     
