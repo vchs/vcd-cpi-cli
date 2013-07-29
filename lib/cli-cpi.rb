@@ -72,15 +72,25 @@ module VCloud
       puts result.inspect
     end
 
-    desc 'configure-networks VAPPID NETWORK...', 'Configure networks'
-    def configure_networks (vapp_id, *networks)
-      cpi.configure_networks vapp_id, networks
+    desc 'configure-networks VMID NETWORK...', 'Configure networks'
+    def configure_networks (vm_id, *networks)
+      bosh_nets = {}
+      networks.each do |network|
+        cfg = network.split ':'
+        bosh_nets[cfg[0]] = {
+          'ip' => cfg[1],
+          'cloud_properties' => {
+            'name' => cfg[0]
+          }
+        }
+      end
+      cpi.configure_networks vm_id, bosh_nets
     end
     
     desc 'create-disk SIZE', 'Create disk'
-    option :locality
+    option :'disk-locality', :desc => 'Disk locality'
     def create_disk (size)
-      result = cpi.create_disk size.to_i, options[:locality]
+      result = cpi.create_disk size.to_i, options[:'disk-locality']
       puts result.inspect
     end
 
