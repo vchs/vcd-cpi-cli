@@ -99,14 +99,14 @@ module VCloud
       cpi.delete_disk disk_id
     end
   
-    desc 'attach-disk VAPPID DISKID', 'Attach disk to vApp'
-    def attach_disk (vapp_id, disk_id)
-      cpi.attach_disk vapp_id, disk_id
+    desc 'attach-disk VMID DISKID', 'Attach disk to vApp'
+    def attach_disk (vm_id, disk_id)
+      cpi.attach_disk vm_id, disk_id
     end
     
-    desc 'detach-disk VAPPID DISKID', 'Detach disk from vApp'
-    def detach_disk (vapp_id, disk_id)
-      cpi.detach_disk vapp_id, disk_id
+    desc 'detach-disk VMID DISKID', 'Detach disk from vApp'
+    def detach_disk (vm_id, disk_id)
+      cpi.detach_disk vm_id, disk_id
     end
   
     desc 'get-disk-size DISKID', 'Get disk size'
