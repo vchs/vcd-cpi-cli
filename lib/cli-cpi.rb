@@ -2,6 +2,7 @@ require 'thor'
 require 'cloud'
 require 'cloud/vcloud'
 require_relative 'utils'
+require_relative 'test-all'
 
 module VCloud
   class StubConfig
@@ -112,6 +113,13 @@ module VCloud
     desc 'get-disk-size DISKID', 'Get disk size'
     def get_disk_size (disk_id)
       puts cpi.get_disk_size_mb(disk_id).inspect
+    end
+    
+    desc 'test CONFIGFILE', 'Simple test cover all functions'
+    option :template, :desc => 'Template Id'
+    def test (configfile)
+      cfg = YAML.load_file configfile
+      SimpleTest.new(cpi, cfg).run options
     end
     
     private

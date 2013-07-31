@@ -1,0 +1,19 @@
+---
+stemcell: _stemcell.tgz
+vm:
+    resource_pool:
+        cpu: 1
+        ram: 256
+        disk: 1024
+    networks:
+        External:
+            ip: 192.168.10.220
+            cloud_properties:
+                name: External
+    new_networks:
+        External:
+            ip: 192.168.10.221
+            cloud_properties:
+                name: External
+disk:
+    size: 64
