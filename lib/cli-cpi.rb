@@ -53,7 +53,7 @@ module VCloud
           }
         }
       end
-      result = cpi.create_vm agent_id, resolve_vapp_name(vapp_id), { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, bosh_nets, options[:'disk-locality'], options[:env]
+      result = cpi.create_vm agent_id, resolve_template_name(vapp_id), { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, bosh_nets, options[:'disk-locality'], options[:env]
       puts result.inspect
     end
     
@@ -209,11 +209,13 @@ Catalog: #{catalog.name}
       unless id.start_with?('urn:')
         vapps = client.vdc.get_nodes 'ResourceEntity', {'type' => 'application/vnd.vmware.vcloud.vApp+xml'}
         raise 'No vApp available' if !vapps or vapps.empty?
-        vapp = vapps.find do |vapp|
-          vapp.vm id
+        vm = nil
+        vapps.find do |vapp_entity|
+          vapp = client.resolve_link vapp_entity.href
+          vm = vapp.vm id
         end
-        raise "VM #{id} not found" unless vapp
-        id = vapp.vm(id).urn
+        raise "VM #{id} not found" unless vm
+        id = vm.urn
       end
       id      
     end
@@ -222,17 +224,20 @@ Catalog: #{catalog.name}
       unless id.start_with?('urn:')
         catalogs = client.org.get_nodes 'Link', {'type' => 'application/vnd.vmware.vcloud.catalog+xml'}
         raise 'No catalog available' if !catalogs or catalogs.empty?
-        catalog = catalogs.find do |catalog_link|
+        item = nil
+        catalogs.find do |catalog_link|
           catalog = nil
           begin
             catalog = client.resolve_link catalog_link
           rescue => ex
             puts "Ignoring #{ex}"
           end
-          catalog && catalog.catalog_items(id)
+          item = catalog.catalog_items(id).first if catalog
+          item
         end
-        raise "Template #{id} not found" unless catalog
-        id = catalog.catalog_items(id).urn
+        raise "Template #{id} not found" unless item
+        item = client.resolve_link item.href
+        id = item.urn
       end
       id
     end
