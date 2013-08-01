@@ -33,7 +33,7 @@ module VCloud
     
     desc 'delete-stemcell TEMPLATEID', 'Delete specified vApp template'
     def delete_stemcell (id)
-      cpi.delete_stemcell id
+      cpi.delete_stemcell resolve_template_name(id)
     end
     
     desc 'create-vm AGENTID TEMPLATEID', 'Create a virtual machine inside the vApp'
@@ -53,23 +53,23 @@ module VCloud
           }
         }
       end
-      result = cpi.create_vm agent_id, vapp_id, { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, bosh_nets, options[:'disk-locality'], options[:env]
+      result = cpi.create_vm agent_id, resolve_vapp_name(vapp_id), { 'cpu' => options[:cpu], 'ram' => options[:mem], 'disk' => options[:disk] }, bosh_nets, options[:'disk-locality'], options[:env]
       puts result.inspect
     end
     
     desc 'delete-vm VMID', 'Delete a virtual machine'
     def delete_vm (id)
-      cpi.delete_vm id
+      cpi.delete_vm resolve_vm_name(id)
     end
     
     desc 'reboot-vm VMID', 'Reboot a vApp'
     def reboot_vm (id)
-      cpi.reboot_vm id
+      cpi.reboot_vm resolve_vm_name(id)
     end
     
     desc 'has-vm VMID', 'Check valiadity of VMID'
     def has_vm (id)
-      result = cpi.has_vm? id
+      result = cpi.has_vm? resolve_vm_name(id)
       puts result.inspect
     end
 
@@ -85,7 +85,7 @@ module VCloud
           }
         }
       end
-      cpi.configure_networks vm_id, bosh_nets
+      cpi.configure_networks resolve_vm_name(vm_id), bosh_nets
     end
     
     desc 'create-disk SIZE', 'Create disk'
@@ -102,17 +102,75 @@ module VCloud
   
     desc 'attach-disk VMID DISKID', 'Attach disk to vApp'
     def attach_disk (vm_id, disk_id)
-      cpi.attach_disk vm_id, disk_id
+      cpi.attach_disk resolve_vm_name(vm_id), disk_id
     end
     
     desc 'detach-disk VMID DISKID', 'Detach disk from vApp'
     def detach_disk (vm_id, disk_id)
-      cpi.detach_disk vm_id, disk_id
+      cpi.detach_disk resolve_vm_name(vm_id), disk_id
     end
   
     desc 'get-disk-size DISKID', 'Get disk size'
     def get_disk_size (disk_id)
       puts cpi.get_disk_size_mb(disk_id).inspect
+    end
+    
+    desc 'vms', 'List virtual machines'
+    def vms
+      vapps = client.vdc.get_nodes 'ResourceEntity', {'type' => 'application/vnd.vmware.vcloud.vApp+xml'}
+      raise 'No vApp available' if !vapps or vapps.empty?
+      vapp = vapps.each do |vapp_entity|
+        vapp = client.resolve_link vapp_entity.href
+        puts <<-EOF
+vApp: #{vapp.name}
+  URN : #{vapp.urn}
+  HREF: #{vapp.href}"
+  STAT: #{vapp['status']}
+  VMS :
+        EOF
+        vapp.vms.each do |vm|
+          puts <<-EOF
+    VM: #{vm.name}
+      URN : #{vm.urn}
+      HREF: #{vm.href}
+      STAT: #{vm['status']}
+        EOF
+        end
+      end
+    end
+  
+    desc 'catalogs', 'List catalogs'
+    def catalogs
+      catalogs = client.org.get_nodes 'Link', {'type' => 'application/vnd.vmware.vcloud.catalog+xml'}
+      raise 'No catalog available' if !catalogs or catalogs.empty?
+      catalog = catalogs.each do |catalog_link|
+        catalog = nil
+        begin
+          catalog = client.resolve_link catalog_link
+        rescue => ex
+          puts "Ignoring #{ex}"
+        end
+        if catalog
+          puts <<-EOF
+Catalog: #{catalog.name}
+  URN : #{catalog.urn}
+  HREF: #{catalog.href}
+  ITEMS:
+          EOF
+          catalog.catalog_items.each do |item_link|
+            begin
+              item = client.resolve_link item_link
+              puts <<-EOF
+    ITEM: #{item.name}
+      URN : #{item.urn}
+      HREF: #{item.href}
+              EOF
+            rescue => ex
+              puts "Ignoring #{ex}"
+            end
+          end
+        end
+      end
     end
     
     desc 'test CONFIGFILE', 'Simple test cover all functions'
@@ -132,6 +190,51 @@ module VCloud
         @cpi = Bosh::Clouds::VCloud.new({ "vcds" => [cfg], "agent" => {} })
       end
       @cpi
+    end
+    
+    def client
+      cpi.instance_eval { @delegate.instance_eval { client } }
+    end
+    
+    def resolve_vapp_name(id)
+      unless id.start_with?('urn:')
+        vapp = client.vdc.get_vapp id
+        raise "vApp #{id} not found" unless vapp
+        id = vapp.urn
+      end
+      id
+    end
+    
+    def resolve_vm_name(id)
+      unless id.start_with?('urn:')
+        vapps = client.vdc.get_nodes 'ResourceEntity', {'type' => 'application/vnd.vmware.vcloud.vApp+xml'}
+        raise 'No vApp available' if !vapps or vapps.empty?
+        vapp = vapps.find do |vapp|
+          vapp.vm id
+        end
+        raise "VM #{id} not found" unless vapp
+        id = vapp.vm(id).urn
+      end
+      id      
+    end
+    
+    def resolve_template_name(id)
+      unless id.start_with?('urn:')
+        catalogs = client.org.get_nodes 'Link', {'type' => 'application/vnd.vmware.vcloud.catalog+xml'}
+        raise 'No catalog available' if !catalogs or catalogs.empty?
+        catalog = catalogs.find do |catalog_link|
+          catalog = nil
+          begin
+            catalog = client.resolve_link catalog_link
+          rescue => ex
+            puts "Ignoring #{ex}"
+          end
+          catalog && catalog.catalog_items(id)
+        end
+        raise "Template #{id} not found" unless catalog
+        id = catalog.catalog_items(id).urn
+      end
+      id
     end
   end
 end

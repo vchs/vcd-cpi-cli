@@ -1,6 +1,8 @@
 ---
 stemcell: _stemcell.tgz
 vm:
+    name: vm1
+    name2: vm2
     resource_pool:
         cpu: 1
         ram: 256
@@ -13,6 +15,11 @@ vm:
     new_networks:
         External:
             ip: 192.168.10.221
+            cloud_properties:
+                name: External
+    networks2:
+        External:
+            ip: 192.168.10.222
             cloud_properties:
                 name: External
 disk:
