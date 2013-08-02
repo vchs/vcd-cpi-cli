@@ -13,11 +13,10 @@ module VCloud
         puts ">> #{template_id}"
       end
       puts "create_vm(#{@conf['vm']['name']}, ...)"
-      env = @conf['vm']['env'] || {}
-      vm_id = @cpi.create_vm @conf['vm']['name'], template_id, @conf['vm']['resource_pool'], @conf['vm']['networks'], @conf['vm']['disk-locality'], env
+      vm_id = @cpi.create_vm @conf['vm']['name'], template_id, @conf['vm']['resource_pool'], @conf['vm']['networks'], @conf['vm']['disk-locality'], @conf['vm']['env']
       puts ">> #{vm_id}"
-      env['vapp'] = @conf['vm']['name']
-      vm2_id = @cpi.create_vm @conf['vm']['name2'], template_id, @conf['vm']['resource_pool'], @conf['vm']['networks2'], @conf['vm']['disk-locality'], env
+      puts "create_vm(#{@conf['vm']['name2']}, ...)"      
+      vm2_id = @cpi.create_vm @conf['vm']['name2'], template_id, @conf['vm']['resource_pool'], @conf['vm']['networks2'], @conf['vm']['disk-locality'], @conf['vm']['env']
       puts ">> #{vm2_id}"
       puts "has_vm?(#{vm_id}): #{@cpi.has_vm?(vm_id)}"
       puts "has_vm?(#{vm2_id}): #{@cpi.has_vm?(vm_id)}"      
