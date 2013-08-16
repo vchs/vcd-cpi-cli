@@ -151,7 +151,7 @@ vApp: #{vapp.name}
       raise 'No catalog available' if !catalogs or catalogs.empty?
       catalog = catalogs.each do |catalog_link|
         catalog = nil
-        error_ingnored { catalog = client.resolve_link catalog_link }
+        error_ignored { catalog = client.resolve_link catalog_link }
         if catalog
           puts <<-EOF
 Catalog: #{catalog.name}
