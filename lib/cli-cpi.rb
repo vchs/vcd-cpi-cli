@@ -203,14 +203,17 @@ Disk: #{disk.name}
 
     desc 'test CONFIGFILE', 'Simple test cover all functions'
     option :template, :desc => 'Template Id'
+    option :concurrent, :type => :boolean, :desc => 'Run concurrent tests only'
+    option :simple, :type => :boolean, :desc => 'Run simple test only'
     def test (configfile)
       cfg = YAML.load_file configfile
       SimpleTest.new(cpi, cfg).run options
     end
 
     desc 'clean OWNER', 'Delete objects belonging to OWNER'
+    option :catalog, :type => :string, :desc => 'Clean catalog'
     def clean (owner)
-      Cleaner.new(cpi).run owner
+      Cleaner.new(cpi).run owner, options[:catalog]
     end
 
     private

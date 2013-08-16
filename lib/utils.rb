@@ -1,10 +1,11 @@
+require 'common/thread_formatter'
 require 'yaml'
 require 'logger'
 
 module VCloud
   module Utils
     CONFIG_LINK = File.join(ENV['HOME'], '.vcd-cli-config')
-                  
+
     def setup_config (config_file)
       cfg = begin
         YAML.load_file config_file
@@ -14,7 +15,7 @@ module VCloud
       fullpath = File.absolute_path config_file
       FileUtils.ln_sf fullpath, CONFIG_LINK
     end
-    
+
     def config
       return begin
           YAML.load_file CONFIG_LINK
@@ -22,7 +23,7 @@ module VCloud
           fatal 'Configuration not available, please use target to select one'
       end
     end
-  
+
     def dump_config
       cfg = begin
         YAML.load_file CONFIG_LINK
@@ -34,9 +35,11 @@ module VCloud
     end
 
     def setup_logger(options)
-      Logger.new(options[:logger] || 'vcd-cli.log')
+      logger = Logger.new(options[:logger] || 'vcd-cli.log')
+      logger.formatter = ThreadFormatter.new
+      logger
     end
-    
+
     def fatal (msg)
       $stderr.puts msg
       exit 1

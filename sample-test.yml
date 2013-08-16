@@ -26,3 +26,20 @@ vm:
         vapp: test-vapp                
 disk:
     size: 64
+concurrent:
+    network: External
+    resource_pool:
+        cpu: 1
+        ram: 256
+        disk: 1024
+    env:
+        vapp: test-conc-vapp
+    vms:
+        - name: test-conc-1
+          ip: 192.168.10.220
+        - name: test-conc-2
+          ip: 192.168.10.221
+        - name: test-conc-3
+          ip: 192.168.10.222
+        - name: test-conc-4
+          ip: 192.168.10.223

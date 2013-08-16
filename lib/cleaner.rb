@@ -4,7 +4,7 @@ module VCloud
       @cpi = cpi
     end
 
-    def run(owner)
+    def run(owner, catalog)
       puts "Cleaning for owner #{owner}"
 
       clean_entities owner, 'application/vnd.vmware.vcloud.vApp+xml' do |vapp|
@@ -21,6 +21,8 @@ module VCloud
        'application/vnd.vmware.vcloud.vAppTemplate+xml'].each do |type|
         clean_entities owner, type
       end
+
+      clean_catalog catalog if catalog
     end
 
     private
@@ -35,6 +37,17 @@ module VCloud
       puts "Ignored #{ex}"
     end
 
+    def remove_link(object)
+      link = object.get_nodes('Link', {'rel' => 'remove'}, true).first
+      if link.nil? || link.href.to_s.nil?
+        link = VCloudSdk::Xml::WrapperFactory.create_instance 'Link'
+        link.rel  = "remove"
+        link.type = ""
+        link.href = object.href
+      end
+      link
+    end
+
     def clean_entities(owner, type, &block)
       (client.vdc.get_nodes('ResourceEntity', { 'type' => type }) || []).each do |entity|
         error_ignored do
@@ -43,15 +56,8 @@ module VCloud
           user = users[0]
           if user && user.name == owner
             block.call(object) if block
-            link = object.get_nodes('Link', {'rel' => 'remove'}, true).first
-            if link.nil? || link.href.to_s.nil?
-              link = VCloudSdk::Xml::WrapperFactory.create_instance 'Link'
-              link.rel  = "remove"
-              link.type = ""
-              link.href = object.href
-            end
             puts "Deleting #{object.name}(#{object.urn}) of #{type}"
-            client.invoke_and_wait :delete, link
+            client.invoke_and_wait :delete, remove_link(object)
           end
         end
       end
@@ -79,6 +85,23 @@ module VCloud
         client.invoke_and_wait :post, link, :payload => params
       end
       object
+    end
+
+    def clean_catalog(name)
+      nodes = client.org.get_nodes 'Link', {'type' => 'application/vnd.vmware.vcloud.catalog+xml', 'name' => name}
+      return if !nodes or nodes.empty?
+      nodes.each do |catalog_link|
+        error_ignored do
+          catalog = client.resolve_link catalog_link
+          catalog.catalog_items.each do |item_link|
+            error_ignored do
+              item = client.resolve_link item_link
+              puts "Deleting Catalog Item #{item.name}(#{item.urn})"
+              client.invoke_and_wait :delete, remove_link(item)
+            end
+          end
+        end
+      end
     end
   end
 end
