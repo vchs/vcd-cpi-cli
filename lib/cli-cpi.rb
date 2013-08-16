@@ -1,4 +1,5 @@
 require 'thor'
+require 'rest_client'
 require 'cloud'
 require 'cloud/vcloud'
 require_relative 'utils'
@@ -121,23 +122,25 @@ module VCloud
       vapps = client.vdc.get_nodes 'ResourceEntity', {'type' => 'application/vnd.vmware.vcloud.vApp+xml'}
       raise 'No vApp available' if !vapps or vapps.empty?
       vapp = vapps.each do |vapp_entity|
-        vapp = client.resolve_link vapp_entity.href
-        owners = vapp.get_nodes 'User', { 'type' => 'application/vnd.vmware.admin.user+xml' }
-        puts <<-EOF
+        error_ignored do
+          vapp = client.resolve_link vapp_entity.href
+          owners = vapp.get_nodes 'User', { 'type' => 'application/vnd.vmware.admin.user+xml' }
+          puts <<-EOF
 vApp: #{vapp.name}
   URN : #{vapp.urn}
   HREF: #{vapp.href}"
   STAT: #{vapp['status']}
   OWNR: #{resolve_owner(vapp)}
   VMS :
-        EOF
-        vapp.vms.each do |vm|
-          puts <<-EOF
+          EOF
+          vapp.vms.each do |vm|
+            puts <<-EOF
     VM: #{vm.name}
       URN : #{vm.urn}
       HREF: #{vm.href}
       STAT: #{vm['status']}
-        EOF
+            EOF
+          end
         end
       end
     end
@@ -148,11 +151,7 @@ vApp: #{vapp.name}
       raise 'No catalog available' if !catalogs or catalogs.empty?
       catalog = catalogs.each do |catalog_link|
         catalog = nil
-        begin
-          catalog = client.resolve_link catalog_link
-        rescue => ex
-          puts "Ignoring #{ex}"
-        end
+        error_ingnored { catalog = client.resolve_link catalog_link }
         if catalog
           puts <<-EOF
 Catalog: #{catalog.name}
@@ -161,7 +160,7 @@ Catalog: #{catalog.name}
   ITEMS:
           EOF
           catalog.catalog_items.each do |item_link|
-            begin
+            error_ignored do
               item = client.resolve_link item_link
               puts <<-EOF
     ITEM: #{item.name}
@@ -169,8 +168,6 @@ Catalog: #{catalog.name}
       HREF: #{item.href}
       OWNR: #{resolve_owner(item)}
               EOF
-            rescue => ex
-              puts "Ignoring #{ex}"
             end
           end
         end
@@ -182,11 +179,7 @@ Catalog: #{catalog.name}
       entities = client.vdc.disks || []
       entities.each do |disk_entity|
         disk = nil
-        begin
-          disk = client.resolve_link disk_entity
-        rescue => ex
-          puts "Ignoring #{ex}"
-        end
+        error_ignored { disk = client.resolve_link disk_entity }
         if disk
           puts <<-EOF
 Disk: #{disk.name}
@@ -281,6 +274,14 @@ Disk: #{disk.name}
     def resolve_owner(object, default_name = nil)
       owners = object.get_nodes 'User', { 'type' => 'application/vnd.vmware.admin.user+xml' }
       owners && owners.any? ? owners[0].name : default_name
+    end
+
+    def error_ignored
+      yield
+    rescue RestClient::Exception => ex
+      puts "RestClient exception: #{ex}: #{ex.response.body}"
+    rescue => ex
+      puts "Ignored #{ex}"
     end
   end
 end
